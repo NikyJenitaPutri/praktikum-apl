@@ -192,7 +192,9 @@ int main() {
                 break;
                 
             case 5:
-                cout << "Keluar dari program.\n";
+                cout << "\n=======================\n";
+                cout << "| Keluar dari program |\n";
+                cout << "=======================\n";
                 break;
 
             default:
