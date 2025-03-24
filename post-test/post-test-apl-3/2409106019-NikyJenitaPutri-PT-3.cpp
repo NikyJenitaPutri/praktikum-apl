@@ -91,7 +91,9 @@ int main() {
                 return 0;
             }
         } else if (pilihan == 3) {
-            cout << "Program berhenti.\n";
+            cout << "=====================" << endl; 
+            cout << "Program berhenti." << endl;
+            cout << "=====================" << endl;
             running = false;
         }
         while (userIndex != -1) {
