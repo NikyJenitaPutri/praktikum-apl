@@ -32,7 +32,7 @@ User users[MAX_USER]; //Array of struct untuk menyimpan user
 Produk produk[MAX_PRODUK]; //Array of struct untuk menyimpan produk
 int jumlahUser = 0, jumlahProduk = 0;
 
-void tampilkanMenu(); //prosedur untuk menampilkan menu utama
+void tampilkanMenu(); //Prosedur untuk menampilkan menu utama
 int registrasiUser(User users[], int &jumlahUser); // Fungsi untuk registrasi user
 int loginUser(User users[], int jumlahUser, int loginAttempts); //Fungsi rekursif untuk login
 void menuUser (int userIndex, Produk produk[], int &jumlahProduk); //Prosedur untuk menu user
@@ -95,7 +95,7 @@ int registrasiUser(User users[], int &jumlahUser) {
         getline(cin, users[jumlahUser].nim);
         jumlahUser++;
         return jumlahUser - 1;
-    }else {
+    } else {
         cout << "Jumlah user sudah penuh!\n";
         return -1;
     }
