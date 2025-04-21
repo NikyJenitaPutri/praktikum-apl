@@ -28,22 +28,28 @@ struct User {
     string nim;
 };
 
-User users[MAX_USER]; //Array of struct untuk menyimpan user
-Produk produk[MAX_PRODUK]; //Array of struct untuk menyimpan produk
-int jumlahUser = 0, jumlahProduk = 0;
+// Struct Data sebagai wadah utama (gabungan)
+struct Data {
+    User users[MAX_USER];
+    Produk produk[MAX_PRODUK];
+    int jumlahUser = 0;
+    int jumlahProduk = 0; 
+};
 
+//Deklarasi fungsi
 void tampilkanMenu(); //Prosedur untuk menampilkan menu utama
-int registrasiUser(User *users, int &jumlahUser); // Fungsi untuk registrasi user
-int loginUser(User *users, int jumlahUser, int loginAttempts); //Fungsi rekursif untuk login
-void menuUser (int userIndex, Produk *produk, int &jumlahProduk); //Prosedur untuk menu user
-bool tambahProduk(Produk *produk, int &jumlahProduk); //Fungsi untuk menambah produk (overloading)
-bool tambahProduk(Produk *produk, int &jumlahProduk, string nama, int stok, int harga, Warna warna); //Fungsi overloading untuk menambah produk
-bool tampilkanProduk(Produk *produk, int &jumlahProduk); //Fungsi untuk menampilkan produk (overloading)
-bool tampilkanProduk(Produk *produk, int &jumlahProduk, int minHarga); //Fungsi overloading untuk menampilkan produk berdasarkan harga
-void ubahProduk(Produk *produk, int &jumlahProduk); //Prosedur untuk mengubah produk
-void hapusProduk(Produk *produk, int &jumlahProduk); //Prosedur untuk menghapus produk
+int registrasiUser(Data *data); // Fungsi untuk registrasi user
+int loginUser(Data *data, int attempt = 0); //Fungsi rekursif untuk login
+void menuUser (Data *data, int userIndex); //Prosedur untuk menu user
+bool tambahProduk(Data &data); //Fungsi untuk menambah produk (overloading)
+bool tambahProduk(Data &data, string nama, int stok, int harga, Warna warna); //Fungsi overloading untuk menambah produk
+bool tampilkanProduk(Data &data); //Fungsi untuk menampilkan produk (overloading)
+bool tampilkanProduk(Data &data, int minHarga); //Fungsi overloading untuk menampilkan produk berdasarkan harga
+void ubahProduk(Data *data); //Prosedur untuk mengubah produk
+void hapusProduk(Data *data); //Prosedur untuk menghapus produk
 
 int main() {
+    Data data;
     int pilihan;
     bool running = true;
     int userIndex = -1;
@@ -55,14 +61,13 @@ int main() {
         cin.ignore();
 
         if (pilihan == 1) {
-            int hasilRegistrasi = registrasiUser(users, jumlahUser);
-            if (hasilRegistrasi!= 1){
-                cout << "Registrasi berhasil" << endl;
+            int hasil = registrasiUser(&data); //Address-of
+            if (hasil!= 1){
             }   
         } else if (pilihan == 2) {
-            userIndex = loginUser(users, jumlahUser, 0);
+            userIndex = loginUser(&data); //Address-of
             if (userIndex != -1) {
-                menuUser(userIndex, produk, jumlahProduk);
+                menuUser(&data, userIndex); //Address-of
             }
         } else if (pilihan == 3) {
             cout << "=====================" << endl; 
@@ -87,14 +92,16 @@ void tampilkanMenu() {
 }
 
 //Fungsi untuk registrasi
-int registrasiUser(User *users, int &jumlahUser) {
-    if (jumlahUser < MAX_USER) {
+//Parameter Dereference
+int registrasiUser(Data *data) {
+    if (data ->jumlahUser < MAX_USER) {
         cout << "Masukkan Nama : ";
-        getline(cin, users[jumlahUser].nama);
+        getline(cin, data ->users[data ->jumlahUser].nama);
         cout << "Masukkan NIM : ";
-        getline(cin, users[jumlahUser].nim);
-        jumlahUser++;
-        return jumlahUser - 1;
+        getline(cin, data ->users[data ->jumlahUser].nim);
+        data ->jumlahUser++;
+        return data ->jumlahUser - 1;
+        cout << "Registrasi berhasil" << endl;
     } else {
         cout << "Jumlah user sudah penuh!\n";
         return -1;
@@ -102,38 +109,33 @@ int registrasiUser(User *users, int &jumlahUser) {
 }
 
 //Fungsi rekursif
-int loginUser(User *users, int jumlahUser, int loginAttempts) {
-    string inputNama, inputNIM;
-    int userIndex = -1;
-
+//Parameter Dereference
+int loginUser(Data *data, int loginAttempts) {
     if (loginAttempts == MAX_LOGIN_ATTEMPTS) {
         cout << "Login gagal 3 kali. Program berhenti.\n";
         exit(0);
     }
     
+    string inputNama, inputNIM;
     cout << "Masukkan Nama : ";
     getline(cin, inputNama);
     cout << "Masukkan NIM : ";
     getline(cin, inputNIM);
     
-    for (int i = 0; i < jumlahUser; i++) {
-        if(users[i].nama == inputNama && users[i].nim == inputNIM) {
-            userIndex = i;
-            break;
-        }
-    }
-
-    if (userIndex != -1) {
+    for (int i = 0; i < data ->jumlahUser; i++) {
+        if(data ->users[i].nama == inputNama && data ->users[i].nim == inputNIM) {
         cout << "Login berhasil\n";
-        return userIndex;
-    } else {
-        cout << "Login gagal. Coba Lagi,\n";
-        return loginUser(users, jumlahUser, loginAttempts + 1); //
-    }
+        return i;
+        }
+    } 
+
+    cout << "Login gagal. Coba Lagi,\n";
+    return loginUser(data, loginAttempts + 1); 
 }
 
 //Prosedur menu utama untuk user setelah login
-void menuUser (int userIndex, Produk *produk, int &jumlahProduk) {
+//Parameter Dereference
+void menuUser (Data *data, int userIndex) {
     int pilihan;
     while (userIndex != -1) {
         cout << "=======================================" << endl;
@@ -150,13 +152,13 @@ void menuUser (int userIndex, Produk *produk, int &jumlahProduk) {
         cin.ignore();
 
         if (pilihan == 1) {
-            tambahProduk(produk, jumlahProduk);
+            tambahProduk(*data);
         } else if (pilihan == 2) {
-            tampilkanProduk(produk, jumlahProduk);
+            tampilkanProduk(*data);
         } else if (pilihan == 3) {
-            ubahProduk(produk, jumlahProduk);
+            ubahProduk(data);
         } else if (pilihan == 4) {
-            hapusProduk(produk, jumlahProduk);
+            hapusProduk(data);
         } else if (pilihan == 5) {
             userIndex = -1;
         }
@@ -164,22 +166,24 @@ void menuUser (int userIndex, Produk *produk, int &jumlahProduk) {
 }
 
 //Fungsi untuk menambah produk
-bool tambahProduk(Produk *produk, int &jumlahProduk) {
-    if (jumlahProduk < MAX_PRODUK) {
+//Parameter Address-Of
+bool tambahProduk(Data &data) {
+    if (data.jumlahProduk < MAX_PRODUK) {
+        Produk &p = data.produk[data.jumlahProduk];
         cout << "Masukkan nama produk : ";
-        getline(cin, produk[jumlahProduk].nama);
+        getline(cin, p.nama);
         cout << "Masukkan stok : ";
-        cin >> produk[jumlahProduk].stok;
+        cin >> p.stok;
         cout << "Masukkan harga : ";
-        cin >> produk[jumlahProduk].harga;
+        cin >> p.harga;
         cin.ignore();
-        for (int k = 0; k < 3; k++) {
-            cout << "Warna standar ke-" << k+1 << ": ";
-            getline(cin, produk[jumlahProduk].warna.standar[k]);
-            cout << "Warna premium ke-" << k+1 << ": ";
-            getline(cin, produk[jumlahProduk].warna.premium[k]);
+        for (int i = 0; i < 3; i++) {
+            cout << "Warna standar ke-" << i+1 << ": ";
+            getline(cin, p.warna.standar[i]);
+            cout << "Warna premium ke-" << i+1 << ": ";
+            getline(cin, p.warna.premium[i]);
         }
-        jumlahProduk++;
+        data.jumlahProduk++;
         cout << "Produk berhasil ditambahkan.\n";
         return true;
     } else {
@@ -189,37 +193,36 @@ bool tambahProduk(Produk *produk, int &jumlahProduk) {
 }
 
 //Fungsi overloading
-bool tambahProduk(Produk *produk, int &jumlahProduk, string nama, int stok, int harga, Warna warna) {
-    if (jumlahProduk < MAX_PRODUK) {
-        produk[jumlahProduk].nama = nama;
-        produk[jumlahProduk].stok = stok;
-        produk[jumlahProduk].harga = harga;
-        produk[jumlahProduk].warna = warna;
-        jumlahProduk++;
+//Parameter Address-Of
+bool tambahProduk(Data &data, string nama, int stok, int harga, Warna warna) {
+    if (data.jumlahProduk < MAX_PRODUK) {
+        data.produk[data.jumlahProduk++] = {nama, stok, harga, warna};
         cout << "Produk berhasil ditambahkan.\n";
         return true;
-    } else {
-        cout << "Data penuh!\n";
-        return false;
-    }
+    } 
+    cout << "Data penuh!\n";
+    return false;
+    
 }
 
 //Fungsi overloading
-bool tampilkanProduk(Produk *produk, int &jumlahProduk) {
-    if (jumlahProduk == 0) {
+//Parameter Address-Of
+bool tampilkanProduk(Data &data) {
+    if (data.jumlahProduk == 0) {
         cout << "\nTidak ada produk tersedia.\n";
         return false;
     } else {
         cout << "\n======================================================================================\n";
         cout << "| No | Nama        | Stok | Harga  |    Warna Standar    |          Warna Premium    |\n";
         cout << "\n======================================================================================\n";
-        for (int i = 0; i < jumlahProduk; i++) {
+        for (int i = 0; i < data.jumlahProduk; i++) {
+            Produk &p = data.produk[i];
             cout << "| " << setw(2) << i+1 << " |"
-                 << setw(12) << produk[i].nama << " |"
-                 << setw(6) << produk[i].stok << " |"
-                 << setw(7) << produk[i].harga << " |"
-                 << setw(20) << produk[i].warna.standar[0] +", " + produk[i].warna.standar[1] + ", " + produk[i].warna.standar[2] << " |" 
-                 << setw(25) << produk[i].warna.premium[0] +", " + produk[i].warna.premium[1] + ", " + produk[i].warna.premium[2] << " |\n";   
+                 << setw(12) << p.nama << " |"
+                 << setw(6) << p.stok << " |"
+                 << setw(7) << p.harga << " |"
+                 << setw(20) << p.warna.standar[0] +", " + p.warna.standar[1] + ", " + p.warna.standar[2] << " |" 
+                 << setw(25) << p.warna.premium[0] +", " + p.warna.premium[1] + ", " + p.warna.premium[2] << " |\n";   
         }
         cout << "\n======================================================================================\n";
         return true;
@@ -227,23 +230,24 @@ bool tampilkanProduk(Produk *produk, int &jumlahProduk) {
 }
 
 //Fungsi overloading
-bool tampilkanProduk(Produk *produk, int &jumlahProduk, int minHarga) {
+bool tampilkanProduk(Data &data, int minHarga) {
     bool found = false;
-    if (jumlahProduk == 0) {
+    if (data.jumlahProduk == 0) {
         cout << "\nTidak ada produk tersedia.\n";
         return false;
     } else {
         cout << "\n======================================================================================\n";
         cout << "| No | Nama        | Stok | Harga  |    Warna Standar    |          Warna Premium    |\n";
         cout << "\n======================================================================================\n";
-        for (int i = 0; i < jumlahProduk; i++) {
-            if (produk[i].harga >= minHarga) {
+        for (int i = 0; i < data.jumlahProduk; i++) {
+            Produk &p = data.produk[i];
+            if (p.harga >= minHarga) {
                 cout << "| " << setw(2) << i+1 << " |"
-                     << setw(12) << produk[i].nama << " |"
-                     << setw(6) << produk[i].stok << " |"
-                     << setw(7) << produk[i].harga << " |"
-                     << setw(20) << produk[i].warna.standar[0] +", " + produk[i].warna.standar[1] + ", " + produk[i].warna.standar[2] << " |" 
-                     << setw(25) << produk[i].warna.premium[0] +", " + produk[i].warna.premium[1] + ", " + produk[i].warna.premium[2] << " |\n";  
+                     << setw(12) << p.nama << " |"
+                     << setw(6) << p.stok << " |"
+                     << setw(7) << p.harga << " |"
+                     << setw(20) << p.warna.standar[0] +", " + p.warna.standar[1] + ", " + p.warna.standar[2] << " |" 
+                     << setw(25) << p.warna.premium[0] +", " + p.warna.premium[1] + ", " + p.warna.premium[2] << " |\n";  
                 found = true; 
             }
         }
@@ -254,11 +258,13 @@ bool tampilkanProduk(Produk *produk, int &jumlahProduk, int minHarga) {
 }
 
 //Prosedur
-void ubahProduk(Produk *produk, int &jumlahProduk) {
-    if (jumlahProduk == 0) {
+//Parameter Dereference
+void ubahProduk(Data *data) {
+    if (data->jumlahProduk == 0) {
         cout << "\nTidak ada produk tersedia.\n";
+        return;
     } else {
-        tampilkanProduk(produk, jumlahProduk);
+        tampilkanProduk(*data);
         int nomorProduk;
 
         //Meminta input nomor produk yang valid
@@ -267,36 +273,38 @@ void ubahProduk(Produk *produk, int &jumlahProduk) {
             cin >> nomorProduk;
             cin.ignore();
 
-            if (nomorProduk < 1 || nomorProduk > jumlahProduk) {
+            if (nomorProduk < 1 || nomorProduk > data->jumlahProduk) {
                 cout << "Nomor produk tidak valid\n";
             }
-        } while (nomorProduk < 1 || nomorProduk > jumlahProduk);
+        } while (nomorProduk < 1 || nomorProduk > data->jumlahProduk);
 
-        nomorProduk--;
+        Produk &p = data->produk[nomorProduk - 1];
         cout << "Masukkan nama baru : ";
-        getline(cin, produk[nomorProduk].nama);
+        getline(cin, p.nama);
         cout << "Masukkan stok baru : ";
-        cin >> produk[nomorProduk].stok;
+        cin >> p.stok;
         cout << "Masukkan harga baru : ";
-        cin >> produk[nomorProduk].harga;
+        cin >> p.harga;
         cin.ignore();
         
-        for (int k = 0; k < 3; k++) {
-            cout << "Warna standar ke-" << k+1 << ": ";
-            getline(cin, produk[nomorProduk].warna.standar[k]);
-            cout << "Warna premium ke-" << k+1 << ": ";
-            getline(cin, produk[nomorProduk].warna.premium[k]);
+        for (int i = 0; i < 3; i++) {
+            cout << "Warna standar ke-" << i+1 << ": ";
+            getline(cin, p.warna.standar[i]);
+            cout << "Warna premium ke-" << i+1 << ": ";
+            getline(cin, p.warna.premium[i]);
         }
         cout << "Produk berhasil diubah.\n";
     }
 }
 
 //Prosedur
-void hapusProduk(Produk *produk, int &jumlahProduk) {
-    if (jumlahProduk == 0) {
+//Parameter Dereference
+void hapusProduk(Data *data) {
+    if (data->jumlahProduk == 0) {
         cout << "\nTidak ada produk tersedia.\n";
+        return;
     } else {
-        tampilkanProduk(produk, jumlahProduk);
+        tampilkanProduk(*data);
         int nomorProduk;
 
         //Meminta input nomor produk yang valid
@@ -305,15 +313,15 @@ void hapusProduk(Produk *produk, int &jumlahProduk) {
             cin >> nomorProduk;
             cin.ignore();
 
-            if (nomorProduk < 1 || nomorProduk > jumlahProduk) {
+            if (nomorProduk < 1 || nomorProduk > data->jumlahProduk) {
                 cout << "Nomor produk tidak valid\n";
             }
-        } while (nomorProduk < 1 || nomorProduk > jumlahProduk); //Loop jika nomor tidak valid
+        } while (nomorProduk < 1 || nomorProduk > data->jumlahProduk); //Loop jika nomor tidak valid
 
-        for (int i = nomorProduk - 1; i < jumlahProduk - 1; i++) {
-            produk[i] = produk[i + 1];
+        for (int i = nomorProduk - 1; i < data->jumlahProduk - 1; i++) {
+            data->produk[i] = data->produk[i + 1];
         }
-        jumlahProduk--;
+        data->jumlahProduk--;
         cout << "Produk berhasil dihapus.\n";
     }
 }
